@@ -104,10 +104,10 @@ def softmax_loss_vectorized(W, X, y, reg):
   f -= np.max(f, axis=1, keepdims=True)
   
   # compute the loss
-  sum_f = np.sum(np.exp(f),axis=1,keepdims=True)
-  p = np.exp(f) / sum_f # softmax formula # p.shape = (500,10)
-  p_by_y = p[np.arange(num_train),y] # p_by_y.shape = (500,)
-  loss = np.sum(-np.log(p_by_y) )
+  sum_f = np.sum(np.exp(f),axis=1,keepdims=True) 
+  p = np.exp(f) / sum_f # softmax formula # p.shape = (500,10) # softmax such that all probs = 1
+  p_by_y = p[np.arange(num_train),y] # p_by_y.shape = (500,) # the probability that we've assigned to the correct answer for each training sample
+  loss = np.sum(-np.log(p_by_y) ) # add up negative logs of the probabilities we've assigned to the correct class - function is lower if on average probabilities for right examples are more correct
   
   # compute gradient
   indices = np.zeros(p.shape) # initialize at zero
