@@ -49,7 +49,7 @@ def conv_forward_strides(x, w, b, conv_param):
   assert (H + 2 * pad - HH) % stride == 0, 'height does not work'
 
   # Pad the input
-  p = pad
+  p = int(pad)
   x_padded = np.pad(x, ((0, 0), (0, 0), (p, p), (p, p)), mode='constant')
   
   # Figure out output dimensions
@@ -65,13 +65,13 @@ def conv_forward_strides(x, w, b, conv_param):
   x_stride = np.lib.stride_tricks.as_strided(x_padded,
                 shape=shape, strides=strides)
   x_cols = np.ascontiguousarray(x_stride)
-  x_cols.shape = (C * HH * WW, N * out_h * out_w)
+  x_cols.shape = (int(C * HH * WW), int(N * out_h * out_w))
 
   # Now all our convolutions are a big matrix multiply
   res = w.reshape(F, -1).dot(x_cols) + b.reshape(-1, 1)
 
   # Reshape the output
-  res.shape = (F, N, out_h, out_w)
+  res.shape = (int(F), int(N), int(out_h), int(out_w))
   out = res.transpose(1, 0, 2, 3)
 
   # Be nice and return a contiguous array
@@ -182,8 +182,8 @@ def max_pool_forward_reshape(x, pool_param):
   assert pool_height == pool_width == stride, 'Invalid pool params'
   assert H % pool_height == 0
   assert W % pool_height == 0
-  x_reshaped = x.reshape(N, C, H / pool_height, pool_height,
-                         W / pool_width, pool_width)
+  x_reshaped = x.reshape(int(N), int(C), int(H / pool_height), int(pool_height),
+                         int(W / pool_width), int(pool_width))
   out = x_reshaped.max(axis=3).max(axis=4)
 
   cache = (x, x_reshaped, out)
