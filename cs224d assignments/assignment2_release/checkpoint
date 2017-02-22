@@ -1,0 +1,2 @@
+model_checkpoint_path: "/notebooks/1A_MOOCs/CS224d/assignment2_release/ptb_rnnlm.weights"
+all_model_checkpoint_paths: "/notebooks/1A_MOOCs/CS224d/assignment2_release/ptb_rnnlm.weights"

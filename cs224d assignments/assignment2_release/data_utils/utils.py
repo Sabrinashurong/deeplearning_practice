@@ -8,7 +8,7 @@ import pandas as pd
 
 
 def invert_dict(d):
-    return {v:k for k,v in d.iteritems()}
+    return {v:k for k,v in d.items()}
 
 def flatten1(lst):
     return list(itertools.chain.from_iterable(lst))
@@ -93,14 +93,14 @@ def seq_to_windows(words, tags, word_to_num, tag_to_num, left=1, right=1):
         if words[i] == "<s>" or words[i] == "</s>":
             continue # skip sentence delimiters
         tagn = tag_to_num[tags[i]]
-        idxs = [word_to_num[words[ii]]
+        idxs = [word_to_num[words[i]]
                 for ii in range(i - left, i + right + 1)]
         X.append(idxs)
         y.append(tagn)
     return array(X), array(y)
 
 def docs_to_windows(docs, word_to_num, tag_to_num, wsize=3):
-    pad = (wsize - 1)/2
+    pad = int((wsize - 1)/2)
     docs = flatten1([pad_sequence(seq, left=pad, right=pad) for seq in docs])
 
     words, tags = zip(*docs)

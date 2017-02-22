@@ -36,6 +36,18 @@ class NERModel(LanguageModel):
   inherits from LanguageModel, which has an add_embedding method in addition to
   the standard Model method.
   """
+  def __init__(self):
+      self.embed_size = 50
+      self.batch_size = 64
+      self.label_size = 5
+      self.hidden_size = 100
+      self.max_epochs = 24 
+      self.early_stopping = 2
+      self.dropout = 0.9
+      self.lr = 0.001
+      self.l2 = 0.001
+      self.window_size = 3
+
 
   def load_data(self, debug=False):
     """Loads starter word-vectors and train/dev/test data."""
@@ -44,12 +56,13 @@ class NERModel(LanguageModel):
       'data/ner/vocab.txt', 'data/ner/wordVectors.txt')
     tagnames = ['O', 'LOC', 'MISC', 'ORG', 'PER']
     self.num_to_tag = dict(enumerate(tagnames))
-    tag_to_num = {v:k for k,v in self.num_to_tag.iteritems()}
+    tag_to_num = {v:k for k,v in self.num_to_tag.items()}
 
     # Load the training set
     docs = du.load_dataset('data/ner/train')
     self.X_train, self.y_train = du.docs_to_windows(
         docs, word_to_num, tag_to_num, wsize=self.config.window_size)
+    print("self.X_train shape: ",self.X_train.shape)
     if debug:
       self.X_train = self.X_train[:1024]
       self.y_train = self.y_train[:1024]
@@ -92,8 +105,8 @@ class NERModel(LanguageModel):
     (Don't change the variable names)
     """
     ### YOUR CODE HERE
-    self.input_placeholder = tf.placeholder(tf.int32, (None, self.window_size))
-    self.labels_placeholder = tf.placeholder(tf.float32, (None, self.label_size))
+    self.input_placeholder = tf.placeholder(tf.int32, (None, self.config.window_size))
+    self.labels_placeholder = tf.placeholder(tf.float32, (None, self.config.label_size))
     self.dropout_placeholder = tf.placeholder(tf.float32)
     ### END YOUR CODE
 
@@ -163,8 +176,15 @@ class NERModel(LanguageModel):
     with tf.device('/cpu:0'):
       return tf.reshape(tf.nn.embedding_lookup(self.embeddings, self.input_placeholder),
                         (-1, self.config.window_size * self.config.embed_size))
-    
-    
+
+    # Prabhakar's code
+#    with tf.device('/cpu:0'):
+#          ### YOUR CODE HERE
+#          L = tf.get_variable("embedding", [len(self.wv), self.config.embed_size], initializer=xavier_weight_init())
+#          window = tf.reshape(tf.nn.embedding_lookup(params=L, ids=self.input_placeholder),
+#                              shape=[-1, self.config.window_size*self.config.embed_size])  
+
+
   def add_model(self, window):
     """Adds the 1-hidden-layer NN.
 
@@ -220,7 +240,7 @@ class NERModel(LanguageModel):
     """
     ### YOUR CODE HERE
     loss = self.config.l2 * sum(tf.get_collection("regularization"))
-    loss += tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(pred, self.labels_placeholder))
+    loss += tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels = self.labels_placeholder, logits = y))
     return loss
     ### END YOUR CODE
 
@@ -336,17 +356,20 @@ def print_confusion(confusion, num_to_tag):
 def calculate_confusion(config, predicted_indices, y_indices):
     """Helper method that calculates confusion matrix."""
     confusion = np.zeros((config.label_size, config.label_size), dtype=np.int32)
-    for i in xrange(len(y_indices)):
+    for i in range(len(y_indices)):
         correct_label = y_indices[i]
         guessed_label = predicted_indices[i]
         confusion[correct_label, guessed_label] += 1
     return confusion
 
+#`with open(filename, "wb") as f:` to `with open(filename, "w") as f:`
 def save_predictions(predictions, filename):
-  """Saves predictions to provided file."""
-  with open(filename, "wb") as f:
-    for prediction in predictions:
-      f.write(str(prediction) + "\n")
+    import warnings
+    warnings.simplefilter("error")
+    """Saves predictions to provided file."""
+    with open(filename, "w") as f:
+        for prediction in predictions:
+            f.write(str(prediction) + "\n")
 
 def test_NER():
   """Test NER model implementation.
@@ -359,7 +382,7 @@ def test_NER():
   with tf.Graph().as_default():
     model = NERModel(config)
 
-    init = tf.initialize_all_variables()
+    init = tf.global_variables_initializer()
     saver = tf.train.Saver()
 
     with tf.Session() as session:
@@ -367,7 +390,7 @@ def test_NER():
       best_val_epoch = 0
 
       session.run(init)
-      for epoch in xrange(config.max_epochs):
+      for epoch in range(config.max_epochs):
         print('Epoch {}'.format(epoch))
         start = time.time()
         ###

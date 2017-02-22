@@ -3,8 +3,12 @@
 # Assigment 2, part 1 for CS224D
 ##
 
-from utils import invert_dict
+#from utils import invert_dict
 from numpy import *
+
+# copied invert_dict from utils file
+def invert_dict(d):
+    return {v:k for k,v in d.items()}
 
 def load_wv(vocabfile, wvfile):
     wv = loadtxt(wvfile, dtype=float)
